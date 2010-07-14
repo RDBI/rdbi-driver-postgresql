@@ -254,4 +254,20 @@ class TestDatabase < Test::Unit::TestCase
 
     assert_nil dbh.table_schema( :non_existent )
   end
+
+  def test_11_named_binds
+    self.dbh = init_database
+
+    res = dbh.execute("select id, cardinal, s from ordinals where id = ?id", { :id => 1 })
+    assert(res)
+    assert_equal([[1, 1, 'first']], res.fetch(:all))
+   
+    res = dbh.execute("select id, cardinal, s from ordinals where id = ?id and cardinal = ?", { :id => 1 }, 1)
+    assert(res)
+    assert_equal([[1, 1, 'first']], res.fetch(:all))
+    
+    res = dbh.execute("select id, cardinal, s from ordinals where id = ?id and cardinal = ?", 1, { :id => 1 })
+    assert(res)
+    assert_equal([[1, 1, 'first']], res.fetch(:all))
+  end
 end

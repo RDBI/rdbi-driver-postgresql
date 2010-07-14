@@ -141,10 +141,24 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def initialize( query, dbh )
       super( query, dbh )
       @stmt_name = Time.now.to_f.to_s
+
+      ep = Epoxy.new( query )
+      @index_map = ep.indexed_binds
+      query = ep.quote(@index_map.compact.inject({}) { |x,y| x.merge({ y => nil }) }) do |x| 
+        case x
+        when Integer
+          "$#{x+1}" 
+        when Symbol
+          num = @index_map.index(x)
+          "$#{num+1}"
+        end
+      end
+
       @pg_result = dbh.pg_conn.prepare(
         @stmt_name,
-        Epoxy.new( query ).quote { |x| "$#{x+1}" }
+        query
       )
+
       # @input_type_map initialized in superclass
       @output_type_map = RDBI::Type.create_type_hash( RDBI::Type::Out )
       @output_type_map[ :bigint ] = RDBI::Type.filterlist( RDBI::Type::Filters::STR_TO_INT )
@@ -152,6 +166,15 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
     # Returns an Array of things used to fill out the parameters to RDBI::Result.new
     def new_execution( *binds )
+      # FIXME move to RDBI::Util or something.
+      hashes, binds = binds.partition { |x| x.kind_of?(Hash) }
+      hash = hashes.inject({}) { |x, y| x.merge(y) }
+      hash.keys.each do |key| 
+        if index = @index_map.index(key)
+          binds.insert(index, hash[key])
+        end
+      end
+
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 
       # XXX when did PGresult get so stupid?
