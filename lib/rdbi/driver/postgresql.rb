@@ -27,6 +27,10 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         @connect_args[:user] || @connect_args[:username],
         @connect_args[:password] || @connect_args[:auth]
       )
+
+      @preprocess_quoter = proc do |x, named, indexed|
+        @pg_conn.escape_string((named[x] || indexed[x]).to_s)
+      end
     end
 
     def disconnect
@@ -59,18 +63,6 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
     def new_statement( query )
       Statement.new( query, self )
-    end
-
-    def preprocess_query( query, *binds )
-      mutex.synchronize { @last_query = query }
-
-      ep = Epoxy.new(query)
-
-      hashes = binds.select { |x| x.kind_of?(Hash) }
-      binds.collect! { |x| x.kind_of?(Hash) ? nil : x } 
-      total_hash = hashes.inject({}) { |x, y| x.merge(y) }
-
-      ep.quote(total_hash) { |x| @pg_conn.escape_string( (total_hash[x] || binds[x]).to_s ) }
     end
 
     def table_schema( table_name, pg_schema = 'public' )
