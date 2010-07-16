@@ -64,8 +64,13 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def preprocess_query( query, *binds )
       mutex.synchronize { @last_query = query }
 
-      ep = Epoxy.new( query )
-      ep.quote { |x| @pg_conn.escape_string( binds[x].to_s ) }
+      ep = Epoxy.new(query)
+
+      hashes = binds.select { |x| x.kind_of?(Hash) }
+      binds.collect! { |x| x.kind_of?(Hash) ? nil : x } 
+      total_hash = hashes.inject({}) { |x, y| x.merge(y) }
+
+      ep.quote(total_hash) { |x| @pg_conn.escape_string( (total_hash[x] || binds[x]).to_s ) }
     end
 
     def table_schema( table_name, pg_schema = 'public' )
