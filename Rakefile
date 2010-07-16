@@ -4,7 +4,7 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "rdbi-dbd-postgresql"
+    gem.name = "rdbi-driver-postgresql"
     gem.summary = %Q{PostgreSQL driver for RDBI}
     gem.description = %Q{PostgreSQL driver for RDBI}
     gem.email = "rdbi@pistos.oib.com"
