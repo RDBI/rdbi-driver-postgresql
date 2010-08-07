@@ -270,4 +270,43 @@ class TestDatabase < Test::Unit::TestCase
     assert(res)
     assert_equal([[1, 1, 'first']], res.fetch(:all))
   end
+
+  def test_12_struct_select
+    self.dbh = init_database
+
+    results = dbh.execute("select id, cardinal, s from ordinals order by id").as(:Struct).fetch(:all)
+
+    assert(results)
+    assert_kind_of(Array, results)
+    assert_equal(results[0].id, 1)
+    assert_equal(results[0].cardinal, 1)
+    assert_equal(results[0].s, 'first')
+    assert_equal(results[1].id, 2)
+    assert_equal(results[1].cardinal, 2)
+    assert_equal(results[1].s, 'second')
+    assert_equal(results[2].id, 3)
+    assert_equal(results[2].cardinal, 3)
+    assert_equal(results[2].s, 'third')
+    
+    results = dbh.execute("select * from ordinals order by id").as(:Struct).fetch(:all)
+    
+    assert(results)
+    assert_kind_of(Array, results)
+    assert_equal(results[0].id, 1)
+    assert_equal(results[0].cardinal, 1)
+    assert_equal(results[0].s, 'first')
+    assert_equal(results[1].id, 2)
+    assert_equal(results[1].cardinal, 2)
+    assert_equal(results[1].s, 'second')
+    assert_equal(results[2].id, 3)
+    assert_equal(results[2].cardinal, 3)
+    assert_equal(results[2].s, 'third')
+    
+    result = dbh.execute("select * from ordinals order by id").as(:Struct).fetch(:first)
+    assert(result)
+    assert_kind_of(Struct, result)
+    assert_equal(result.id, 1)
+    assert_equal(result.cardinal, 1)
+    assert_equal(result.s, 'first')
+  end
 end
