@@ -15,7 +15,7 @@ begin
     gem.add_development_dependency 'rdoc'
 
     gem.add_dependency 'rdbi'
-    gem.add_dependency 'pg'
+    gem.add_dependency 'pg', '= 0.9.0'
     gem.add_dependency 'methlab'
     gem.add_dependency 'epoxy', '>= 0.3.1'
 

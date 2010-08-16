@@ -1,6 +1,7 @@
 require 'rdbi'
 require 'epoxy'
 require 'methlab'
+gem 'pg', '= 0.9.0'
 require 'pg'
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
