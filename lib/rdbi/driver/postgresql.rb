@@ -130,6 +130,115 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     end
   end
 
+  class Cursor < RDBI::Cursor
+    def initialize(handle, schema)
+      super(handle)
+      @index = 0
+      @stub_datetime = DateTime.now.strftime( " %z" )
+      @schema = schema
+    end
+
+    def fetch(count=1)
+      return [] if last_row?
+      a = []
+      count.times { a.push(next_row) }
+      return a
+    end
+
+    def next_row
+      val = @handle[@index].values
+      @index += 1
+      fix_dates(val)
+    end
+
+    def result_count
+      @handle.num_tuples
+    end
+
+    def affected_count
+      @handle.cmd_tuples
+    end
+
+    def first
+      fix_dates(@handle[0].values)
+    end
+
+    def last
+      fix_dates(@handle[-1].values)
+    end
+
+    def rest
+      oindex, @index = @index, result_count-1
+      fix_dates(fetch_range(oindex, @index))
+    end
+
+    def all
+      fix_dates(fetch_range(0, result_count-1))
+    end
+
+    def [](index)
+      fix_dates(@handle[index].values)
+    end
+    
+    def last_row?
+      @index == result_count
+    end
+
+    def rewind
+      @index = 0
+    end
+
+    def empty?
+      result_count == 0
+    end
+
+    def finish
+      @handle.clear
+    end
+
+    protected
+
+    def fetch_range(start, stop)
+      # XXX when did PGresult get so stupid?
+      ary = []
+      (start..stop).to_a.each do |i|
+        row = []
+        @handle.num_fields.times do |j|
+          row[ j ] = @handle.getvalue( i, j )
+        end
+
+        ary.push row
+      end
+      # XXX end stupid rectifier.
+      
+      return ary
+    end
+
+    def fix_dates(values)
+      # probably a better way to do this, but at least it's happening on fetch.
+      retval = []
+      values.each_with_index do |val, x|
+        if val.kind_of?(Array)
+          newval = []
+          val.each_with_index do |col, i|
+            if !col.nil? and @schema.columns[i].type == 'timestamp without time zone'
+              col << @stub_datetime
+            end
+
+            newval.push(col)
+          end
+          retval.push(newval)
+        else
+          if !val.nil? and @schema.columns[x].type == 'timestamp without time zone'
+            val << @stub_datetime
+          end
+          retval.push(val)
+        end
+      end
+      return retval
+    end
+  end
+
   class Statement < RDBI::Statement
     extend MethLab
 
@@ -175,18 +284,6 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 
-      # XXX when did PGresult get so stupid?
-      ary = []
-      pg_result.num_tuples.times do |i|
-        row = []
-        pg_result.num_fields.times do |j|
-          row[ j ] = pg_result.getvalue( i, j )
-        end
-
-        ary.push row
-      end
-      # XXX end stupid rectifier.
-
       columns = []
       stub_datetime = DateTime.now.strftime( " %z" )
       (0...pg_result.num_fields).each do |i|
@@ -195,13 +292,6 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         c.type = @dbh.pg_conn.exec(
           "SELECT format_type( #{ pg_result.ftype(i) }, #{ pg_result.fmod(i) } )"
         )[ 0 ].values[ 0 ]
-        if c.type == 'timestamp without time zone'
-          ary.each do |row|
-            if row[ i ]
-              row[ i ] << stub_datetime
-            end
-          end
-        end
         if c.type.start_with? 'timestamp'
           c.ruby_type = 'timestamp'.to_sym
         else
@@ -213,11 +303,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       this_schema = RDBI::Schema.new
       this_schema.columns = columns
 
-      num_affected = pg_result.cmd_tuples
-
-      pg_result.clear
-
-      [ ary, this_schema, @output_type_map, num_affected ]
+      [ Cursor.new(pg_result, this_schema), this_schema, @output_type_map ]
     end
 
     def finish

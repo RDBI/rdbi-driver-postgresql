@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Pistos", "Erik Hollensbe"]
-  s.date = %q{2010-08-16}
+  s.date = %q{2010-08-18}
   s.description = %q{PostgreSQL driver for RDBI}
   s.email = %q{rdbi@pistos.oib.com}
   s.extra_rdoc_files = [
@@ -45,14 +45,14 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<test-unit>, [">= 0"])
       s.add_development_dependency(%q<rdoc>, [">= 0"])
       s.add_runtime_dependency(%q<rdbi>, [">= 0"])
-      s.add_runtime_dependency(%q<pg>, [">= 0"])
+      s.add_runtime_dependency(%q<pg>, ["= 0.9.0"])
       s.add_runtime_dependency(%q<methlab>, [">= 0"])
       s.add_runtime_dependency(%q<epoxy>, [">= 0.3.1"])
     else
       s.add_dependency(%q<test-unit>, [">= 0"])
       s.add_dependency(%q<rdoc>, [">= 0"])
       s.add_dependency(%q<rdbi>, [">= 0"])
-      s.add_dependency(%q<pg>, [">= 0"])
+      s.add_dependency(%q<pg>, ["= 0.9.0"])
       s.add_dependency(%q<methlab>, [">= 0"])
       s.add_dependency(%q<epoxy>, [">= 0.3.1"])
     end
@@ -60,7 +60,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<test-unit>, [">= 0"])
     s.add_dependency(%q<rdoc>, [">= 0"])
     s.add_dependency(%q<rdbi>, [">= 0"])
-    s.add_dependency(%q<pg>, [">= 0"])
+    s.add_dependency(%q<pg>, ["= 0.9.0"])
     s.add_dependency(%q<methlab>, [">= 0"])
     s.add_dependency(%q<epoxy>, [">= 0.3.1"])
   end
