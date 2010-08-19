@@ -13,6 +13,7 @@ begin
 
     gem.add_development_dependency 'test-unit'
     gem.add_development_dependency 'rdoc'
+    gem.add_development_dependency 'rdbi-dbrc'
 
     gem.add_dependency 'rdbi'
     gem.add_dependency 'pg', '= 0.9.0'

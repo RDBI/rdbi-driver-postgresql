@@ -5,7 +5,8 @@ require 'fileutils'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'rdbi'
+gem 'rdbi-dbrc'
+require 'rdbi-dbrc'
 require 'rdbi/driver/postgresql'
 
 class Test::Unit::TestCase
@@ -25,12 +26,16 @@ class Test::Unit::TestCase
   ]
 
   def new_database
-    RDBI.connect( :PostgreSQL, :database => 'rdbi', :user => 'rdbi' )
+    RDBI::DBRC.connect(:postgresql_test)
   end
 
   def init_database
     dbh = new_database
     SQL.each { |query| dbh.execute(query) }
     return dbh
+  end
+
+  def role
+    RDBI::DBRC.roles[:postgresql_test]
   end
 end
