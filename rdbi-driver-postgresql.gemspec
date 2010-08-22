@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rdbi-driver-postgresql}
-  s.version = "0.0.0"
+  s.version = "0.9.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Pistos", "Erik Hollensbe"]
-  s.date = %q{2010-08-19}
+  s.date = %q{2010-08-21}
   s.description = %q{PostgreSQL driver for RDBI}
   s.email = %q{rdbi@pistos.oib.com}
   s.extra_rdoc_files = [
