@@ -207,7 +207,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           row[ j ] = @handle.getvalue( i, j )
         end
 
-        ary.push row
+        ary << row
       end
       # XXX end stupid rectifier.
       
@@ -216,6 +216,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
     def fix_dates(values)
       index = 0
+
       values.collect! do |val|
         if val.kind_of?(Array)
           index2 = 0
