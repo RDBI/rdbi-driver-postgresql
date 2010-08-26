@@ -215,27 +215,29 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     end
 
     def fix_dates(values)
-      # probably a better way to do this, but at least it's happening on fetch.
-      retval = []
-      values.each_with_index do |val, x|
+      index = 0
+      values.collect! do |val|
         if val.kind_of?(Array)
-          newval = []
-          val.each_with_index do |col, i|
-            if !col.nil? and @schema.columns[i].type == 'timestamp without time zone'
+          index2 = 0
+          val.collect! do |col|
+            if !col.nil? and @schema.columns[index2].type == 'timestamp without time zone'
               col << @stub_datetime
             end
 
-            newval.push(col)
+            index2 += 1
+            col
           end
-          retval.push(newval)
         else
-          if !val.nil? and @schema.columns[x].type == 'timestamp without time zone'
+          if !val.nil? and @schema.columns[index].type == 'timestamp without time zone'
             val << @stub_datetime
           end
-          retval.push(val)
         end
+
+        index += 1
+        val
       end
-      return retval
+
+      return values
     end
   end
 
@@ -297,7 +299,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           else
             c.ruby_type = c.type.to_sym
           end
-          columns.push(c)
+          columns << c
         end
       end
 
