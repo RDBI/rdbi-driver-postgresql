@@ -284,20 +284,21 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 
-      columns = []
-      stub_datetime = DateTime.now.strftime( " %z" )
-      (0...pg_result.num_fields).each do |i|
-        c = RDBI::Column.new
-        c.name = pg_result.fname( i ).to_sym
-        c.type = @dbh.pg_conn.exec(
-          "SELECT format_type( #{ pg_result.ftype(i) }, #{ pg_result.fmod(i) } )"
-        )[ 0 ].values[ 0 ]
-        if c.type.start_with? 'timestamp'
-          c.ruby_type = 'timestamp'.to_sym
-        else
-          c.ruby_type = c.type.to_sym
+      columns = [] 
+      column_query = (0...pg_result.num_fields).to_a.map { |x| "format_type(#{ pg_result.ftype(x) }, #{ pg_result.fmod(x) }) as col#{x}" }.join(", ")
+
+      unless column_query.empty?
+        @dbh.pg_conn.exec("select #{column_query}")[0].values.each_with_index do |type, i|
+          c = RDBI::Column.new
+          c.name = pg_result.fname( i ).to_sym
+          c.type = type
+          if c.type.start_with? 'timestamp'
+            c.ruby_type = 'timestamp'.to_sym
+          else
+            c.ruby_type = c.type.to_sym
+          end
+          columns.push(c)
         end
-        columns << c
       end
 
       this_schema = RDBI::Schema.new
