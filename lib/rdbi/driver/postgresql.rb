@@ -201,7 +201,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def fetch_range(start, stop)
       # XXX when did PGresult get so stupid?
       ary = []
-      (start..stop).to_a.each do |i|
+      (start..stop).each do |i|
         row = []
         @handle.num_fields.times do |j|
           row[ j ] = @handle.getvalue( i, j )
