@@ -71,7 +71,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         "SELECT table_type FROM information_schema.tables WHERE table_schema = ? AND table_name = ?",
         pg_schema,
         table_name
-      ).fetch( :all )[ 0 ]
+      ).fetch( :first ) rescue nil
       if info_row.nil?
         return nil
       end
