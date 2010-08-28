@@ -274,6 +274,20 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       @output_type_map[ :bigint ] = RDBI::Type.filterlist( RDBI::Type::Filters::STR_TO_INT )
     end
 
+    def new_modification(*binds)
+      # FIXME move to RDBI::Util or something.
+      hashes, binds = binds.partition { |x| x.kind_of?(Hash) }
+      hash = hashes.inject({}) { |x, y| x.merge(y) }
+      hash.keys.each do |key| 
+        if index = @index_map.index(key)
+          binds.insert(index, hash[key])
+        end
+      end
+
+      pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
+      return pg_result.cmd_tuples
+    end
+
     # Returns an Array of things used to fill out the parameters to RDBI::Result.new
     def new_execution( *binds )
       # FIXME move to RDBI::Util or something.

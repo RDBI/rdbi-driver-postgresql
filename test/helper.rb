@@ -31,7 +31,7 @@ class Test::Unit::TestCase
 
   def init_database
     dbh = new_database
-    SQL.each { |query| dbh.execute(query) }
+    SQL.each { |query| dbh.execute_modification(query) }
     return dbh
   end
 

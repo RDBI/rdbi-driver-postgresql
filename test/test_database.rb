@@ -39,7 +39,7 @@ class TestDatabase < Test::Unit::TestCase
 
   def test_03_execute
     self.dbh = init_database
-    res = dbh.execute( "insert into foo (bar) values (?)", 1 )
+    res = dbh.execute_modification( "insert into foo (bar) values (?)", 1 )
     assert res
     assert_kind_of( RDBI::Result, res )
     assert_equal( 1, res.affected_count )
@@ -84,10 +84,11 @@ class TestDatabase < Test::Unit::TestCase
     assert sth
     assert_kind_of( RDBI::Statement, sth )
     assert_respond_to( sth, :execute )
+    assert_respond_to( sth, :execute_modification )
 
     5.times do
-      res = sth.execute( 1 )
-      assert_equal( 1, res.affected_count )
+      res = sth.execute_modification( 1 )
+      assert_equal( 1, res )
     end
 
     assert_equal( dbh.last_statement.object_id, sth.object_id )
@@ -118,7 +119,7 @@ class TestDatabase < Test::Unit::TestCase
 
     dbh.transaction do
       assert dbh.in_transaction?
-      5.times { dbh.execute( "insert into foo (bar) values (?)", 1 ) }
+      5.times { dbh.execute_modification( "insert into foo (bar) values (?)", 1 ) }
       dbh.rollback
       assert ! dbh.in_transaction?
     end
@@ -129,7 +130,7 @@ class TestDatabase < Test::Unit::TestCase
 
     dbh.transaction do
       assert dbh.in_transaction?
-      5.times { dbh.execute("insert into foo (bar) values (?)", 1) }
+      5.times { dbh.execute_modification("insert into foo (bar) values (?)", 1) }
       assert_equal( [[1]] * 5, dbh.execute("select * from foo").fetch(:all) )
       dbh.commit
       assert ! dbh.in_transaction?
@@ -169,7 +170,7 @@ class TestDatabase < Test::Unit::TestCase
   def test_07_schema
     self.dbh = init_database
 
-    dbh.execute( "insert into bar (foo, bar) values (?, ?)", "foo", 1 )
+    dbh.execute_modification( "insert into bar (foo, bar) values (?, ?)", "foo", 1 )
     res = dbh.execute( "select * from bar" )
 
     assert res
@@ -183,7 +184,7 @@ class TestDatabase < Test::Unit::TestCase
     self.dbh = init_database
 
     dt = DateTime.now
-    dbh.execute( 'insert into time_test (my_date) values (?)', dt )
+    dbh.execute_modification( 'insert into time_test (my_date) values (?)', dt )
     dt2 = dbh.execute( 'select * from time_test limit 1' ).fetch(1)[0][0]
 
     assert_kind_of( DateTime, dt2 )
