@@ -254,7 +254,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
       ep = Epoxy.new( query )
       @index_map = ep.indexed_binds
-      query = ep.quote(@index_map.compact.inject({}) { |x,y| x.merge({ y => nil }) }) do |x| 
+      query = ep.quote(Hash[@index_map.compact.zip([])]) do |x|
         case x
         when Integer
           "$#{x+1}" 
@@ -278,17 +278,19 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def new_execution( *binds )
       # FIXME move to RDBI::Util or something.
       hashes, binds = binds.partition { |x| x.kind_of?(Hash) }
-      hash = hashes.inject({}) { |x, y| x.merge(y) }
-      hash.keys.each do |key| 
+      hash = hashes.inject({}, :merge)
+      hash.each do |key, value|
         if index = @index_map.index(key)
-          binds.insert(index, hash[key])
+          binds.insert(index, value)
         end
       end
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 
       columns = [] 
-      column_query = (0...pg_result.num_fields).to_a.map { |x| "format_type(#{ pg_result.ftype(x) }, #{ pg_result.fmod(x) }) as col#{x}" }.join(", ")
+      column_query = (0...pg_result.num_fields).map do |x|
+        "format_type(#{ pg_result.ftype(x) }, #{ pg_result.fmod(x) }) as col#{x}"
+      end.join(", ")
 
       unless column_query.empty?
         @dbh.pg_conn.exec("select #{column_query}")[0].values.each_with_index do |type, i|
