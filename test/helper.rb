@@ -3,8 +3,6 @@ gem 'test-unit'
 require 'test/unit'
 require 'fileutils'
 
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 gem 'rdbi-dbrc'
 require 'rdbi-dbrc'
 require 'rdbi/driver/postgresql'
