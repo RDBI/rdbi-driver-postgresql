@@ -2,7 +2,7 @@ require 'rubygems'
 gem 'test-unit'
 require 'test/unit'
 require 'fileutils'
-
+gem 'pg', '= 0.9.0'
 gem 'rdbi-dbrc'
 require 'rdbi-dbrc'
 require 'rdbi/driver/postgresql'
