@@ -39,10 +39,7 @@ class TestDatabase < Test::Unit::TestCase
 
   def test_03_execute
     self.dbh = init_database
-    res = dbh.execute_modification( "insert into foo (bar) values (?)", 1 )
-    assert res
-    assert_kind_of( RDBI::Result, res )
-    assert_equal( 1, res.affected_count )
+    assert_equal(1, dbh.execute_modification( "insert into foo (bar) values (?)", 1 ))
 
     res = dbh.execute( "select * from foo" )
     assert res
