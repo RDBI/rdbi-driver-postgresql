@@ -2,9 +2,7 @@ require 'rubygems'
 gem 'test-unit'
 require 'test/unit'
 require 'fileutils'
-
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+gem 'pg', '= 0.9.0'
 gem 'rdbi-dbrc'
 require 'rdbi-dbrc'
 require 'rdbi/driver/postgresql'
