@@ -326,10 +326,5 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
       [ Cursor.new(pg_result, this_schema), this_schema, @output_type_map ]
     end
-
-    def finish
-      @pg_result.clear
-      super
-    end
   end
 end
