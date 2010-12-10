@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Pistos", "Erik Hollensbe"]
-  s.date = %q{2010-09-10}
+  s.date = %q{2010-12-10}
   s.description = %q{PostgreSQL driver for RDBI}
   s.email = %q{rdbi@pistos.oib.com}
   s.extra_rdoc_files = [
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "lib/rdbi-driver-postgresql.rb",
      "lib/rdbi/driver/postgresql.rb",
      "rdbi-driver-postgresql.gemspec",
      "test/helper.rb",
