@@ -17,7 +17,6 @@ begin
 
     gem.add_dependency 'rdbi'
     gem.add_dependency 'pg', '= 0.9.0'
-    gem.add_dependency 'methlab'
     gem.add_dependency 'epoxy', '>= 0.3.1'
 
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings

@@ -1,6 +1,5 @@
 require 'rdbi'
 require 'epoxy'
-require 'methlab'
 require 'pg'
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
@@ -11,8 +10,6 @@ end
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
   class Database < RDBI::Database
-    extend MethLab
-
     attr_accessor :pg_conn
 
     def initialize( *args )
@@ -29,7 +26,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       )
 
       @preprocess_quoter = proc do |x, named, indexed|
-        @pg_conn.escape_string((named[x] || indexed[x]).to_s)
+        quote(named[x] || indexed[x])
       end
     end
 
@@ -125,6 +122,21 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         stop.to_i - start.to_i
       else
         raise RDBI::DisconnectedError, "disconnected during ping"
+      end
+    end
+    
+    def quote(item)
+      case item
+      when Numeric
+        item.to_s
+      when TrueClass
+        'true'
+      when FalseClass
+        'false'
+      when NilClass
+        'NULL'
+      else
+        "E'#{@pg_conn.escape_string(item)}'"
       end
     end
   end
@@ -242,10 +254,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
   end
 
   class Statement < RDBI::Statement
-    extend MethLab
-
     attr_accessor :pg_result
-    attr_threaded_accessor :stmt_name
+    attr_accessor :stmt_name
 
     def initialize( query, dbh )
       super( query, dbh )

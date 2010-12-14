@@ -311,4 +311,15 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(result.cardinal, 1)
     assert_equal(result.s, 'first')
   end
+  
+  def test_13_quote
+    self.dbh = init_database
+
+    assert_equal(%q[1], dbh.quote(1))
+    assert_equal(%q[false], dbh.quote(false))
+    assert_equal(%q[true], dbh.quote(true))
+    assert_equal(%q[NULL], dbh.quote(nil))
+    assert_equal(%q[E'shit'], dbh.quote('shit'))
+    assert_equal(%q[E'shit''t'], dbh.quote('shit\'t'))
+  end
 end
