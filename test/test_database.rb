@@ -175,10 +175,6 @@ class TestDatabase < Test::Unit::TestCase
     assert_kind_of( RDBI::Schema, res.schema )
     assert res.schema.columns
     res.schema.columns.each { |x| assert_kind_of(RDBI::Column, x) }
-
-    assert(dbh.table_schema('ordinals').columns.find {|x| x.name == :id }.primary_key)
-    assert(!dbh.table_schema('ordinals').columns.find {|x| x.name == :cardinal }.primary_key)
-    assert(!dbh.table_schema('ordinals').columns.find {|x| x.name == :s }.primary_key)
   end
 
   def test_08_datetime
@@ -238,6 +234,10 @@ class TestDatabase < Test::Unit::TestCase
   def test_10_table_schema
     self.dbh = init_database
     assert_respond_to( dbh, :table_schema )
+
+    assert(dbh.table_schema('ordinals').columns.find {|x| x.name == :id }.primary_key)
+    assert(!dbh.table_schema('ordinals').columns.find {|x| x.name == :cardinal }.primary_key)
+    assert(!dbh.table_schema('ordinals').columns.find {|x| x.name == :s }.primary_key)
 
     schema = dbh.table_schema( :foo )
     columns = schema.columns

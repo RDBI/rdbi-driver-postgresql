@@ -80,6 +80,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         sch.type = :table
       when 'VIEW'
         sch.type = :view
+      else
+        sch.type = :table
       end
 
       execute( %q[
@@ -89,7 +91,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
               ON kcu.column_name = c.column_name
               LEFT JOIN information_schema.table_constraints tc
                 ON tc.constraint_name = kcu.constraint_name
-          WHERE c.table_schema = ? and c.table_name = ?;
+          WHERE c.table_schema = ? and c.table_name = ?
         ],
         pg_schema,
         table_name
@@ -149,7 +151,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       when NilClass
         'NULL'
       else
-        "E'#{@pg_conn.escape_string(item)}'"
+        "E'#{@pg_conn.escape_string(item.to_s)}'"
       end
     end
   end
@@ -241,11 +243,13 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def fix_dates(values)
       index = 0
 
+      columns = @schema.columns
+
       values.collect! do |val|
         if val.kind_of?(Array)
           index2 = 0
           val.collect! do |col|
-            if !col.nil? and @schema.columns[index2].type == 'timestamp without time zone'
+            if !col.nil? and columns[index2].type == 'timestamp without time zone'
               col << @stub_datetime
             end
 
@@ -253,7 +257,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
             col
           end
         else
-          if !val.nil? and @schema.columns[index].type == 'timestamp without time zone'
+          if !val.nil? and columns[index].type == 'timestamp without time zone'
             val << @stub_datetime
           end
         end
@@ -283,6 +287,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         when Symbol
           num = @index_map.index(x)
           "$#{num+1}"
+        else
+          x
         end
       end
 
@@ -299,14 +305,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     end
 
     def new_modification(*binds)
-      # FIXME move to RDBI::Util or something.
-      hashes, binds = binds.partition { |x| x.kind_of?(Hash) }
-      hash = hashes.inject({}) { |x, y| x.merge(y) }
-      hash.keys.each do |key| 
-        if index = @index_map.index(key)
-          binds.insert(index, hash[key])
-        end
-      end
+      binds = RDBI::Util.index_binds(binds, @index_map)
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
       return pg_result.cmd_tuples
@@ -314,14 +313,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
     # Returns an Array of things used to fill out the parameters to RDBI::Result.new
     def new_execution( *binds )
-      # FIXME move to RDBI::Util or something.
-      hashes, binds = binds.partition { |x| x.kind_of?(Hash) }
-      hash = hashes.inject({}, :merge)
-      hash.each do |key, value|
-        if index = @index_map.index(key)
-          binds.insert(index, value)
-        end
-      end
+      binds = RDBI::Util.index_binds(binds, @index_map)
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 

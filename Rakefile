@@ -48,6 +48,29 @@ end
 
 task :test => :check_dependencies
 
+begin
+  require 'roodi'
+  require 'roodi_task'
+  RoodiTask.new do |t|
+    t.verbose = false
+  end
+rescue LoadError
+  task :roodi do
+    abort "Roodi is not available. In order to run roodi, you must: sudo gem install roodi"
+  end
+end
+
+begin
+  require 'reek/rake/task'
+  Reek::Rake::Task.new do |t|
+    t.reek_opts << '-q'
+  end
+rescue LoadError
+  task :reek do
+    abort "Reek is not available. 'gem install reek'."
+  end
+end
+
 task :default => :test
 
 require 'rdoc/task'
