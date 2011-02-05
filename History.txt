@@ -1,0 +1,9 @@
+=== 1.0.0 / 2011-02-05
+
+* Update License
+* Roodi/Reek 
+* Using RDBI::Util.index_binds now. should be a little faster.
+* primary key support.
+* Removed methlab 
+* Quoting implementation
+

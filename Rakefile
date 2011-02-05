@@ -1,84 +1,46 @@
+# -*- ruby -*-
+
 require 'rubygems'
-require 'rake'
+require 'hoe'
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = "rdbi-driver-postgresql"
-    gem.summary = %Q{PostgreSQL driver for RDBI}
-    gem.description = %Q{PostgreSQL driver for RDBI}
-    gem.email = "rdbi@pistos.oib.com"
-    gem.homepage = "http://github.com/Pistos/rdbi-dbd-postgresql"
-    gem.authors = [ "Pistos", "Erik Hollensbe" ]
+Hoe.plugins.delete :rubyforge
+Hoe.plugin :git
+Hoe.plugin :rcov
+Hoe.plugin :roodi
+Hoe.plugin :reek
 
-    gem.add_development_dependency 'test-unit'
-    gem.add_development_dependency 'rdoc'
-    gem.add_development_dependency 'rdbi-dbrc'
+spec = Hoe.spec 'rdbi-driver-postgresql' do
+  developer 'Pistos', 'pistos@purepistos.net'
+  developer 'Erik Hollensbe', 'erik@hollensbe.org'
 
-    gem.add_dependency 'rdbi'
-    gem.add_dependency 'pg', '= 0.9.0'
-    gem.add_dependency 'epoxy', '>= 0.3.1'
+  self.rubyforge_name = nil
 
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
-  end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+  self.description = <<-EOF
+  This is the PostgreSQL driver for RDBI.
+
+  RDBI is a database interface built out of small parts. A micro framework for
+  databases, RDBI works with and extends libraries like 'typelib' and 'epoxy'
+  to provide type conversion and binding facilities. Via a driver/adapter
+  system it provides database access. RDBI itself provides pooling and other
+  enhanced database features.
+  EOF
+
+  self.summary = 'MySQL driver for RDBI';
+  self.url = %w[http://github.com/rdbi/rdbi-driver-mysql]
+  
+  require_ruby_version ">= 1.8.7"
+
+  extra_dev_deps << ['hoe-roodi']
+  extra_dev_deps << ['hoe-reek']
+  extra_dev_deps << ['minitest']
+
+  extra_deps << ['rdbi']
+  extra_deps << ['pg', '>= 0.9.0']
+
+  desc "install a gem without sudo"
 end
 
-require 'rake/testtask'
-Rake::TestTask.new(:test) do |test|
-  test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
+task :install => [:gem] do
+  sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
 end
-
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |test|
-    test.libs << 'test'
-    test.pattern = 'test/**/test_*.rb'
-    test.verbose = true
-  end
-rescue LoadError
-  task :rcov do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
-  end
-end
-
-task :test => :check_dependencies
-
-begin
-  require 'roodi'
-  require 'roodi_task'
-  RoodiTask.new do |t|
-    t.verbose = false
-  end
-rescue LoadError
-  task :roodi do
-    abort "Roodi is not available. In order to run roodi, you must: sudo gem install roodi"
-  end
-end
-
-begin
-  require 'reek/rake/task'
-  Reek::Rake::Task.new do |t|
-    t.reek_opts << '-q'
-  end
-rescue LoadError
-  task :reek do
-    abort "Reek is not available. 'gem install reek'."
-  end
-end
-
-task :default => :test
-
-require 'rdoc/task'
-RDoc::Task.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "rdbi-dbd-postgresql #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
+# vim: syntax=ruby
