@@ -25,8 +25,8 @@ spec = Hoe.spec 'rdbi-driver-postgresql' do
   enhanced database features.
   EOF
 
-  self.summary = 'MySQL driver for RDBI';
-  self.url = %w[http://github.com/rdbi/rdbi-driver-mysql]
+  self.summary = 'PostgreSQL driver for RDBI';
+  self.url = %w[http://github.com/rdbi/rdbi-driver-postgresql]
   
   require_ruby_version ">= 1.8.7"
 
