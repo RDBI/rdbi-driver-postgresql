@@ -42,7 +42,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         raise RDBI::TransactionError.new( "Already in transaction (not supported by PostgreSQL)" )
       end
       execute 'BEGIN'
-      super &block
+      super(&block)
     end
 
     def rollback

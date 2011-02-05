@@ -28,7 +28,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_kind_of(Numeric, RDBI.ping(driver, my_role))
     dbh.disconnect
 
-    assert_raises(RDBI::DisconnectedError.new("not connected")) do
+    assert_raises(RDBI::DisconnectedError) do
       dbh.ping
     end
 
@@ -249,12 +249,12 @@ class TestDatabase < Test::Unit::TestCase
     schema = dbh.table_schema( :bar )
     columns = schema.columns
     assert_equal columns.size, 2
-    columns.each do |c|
-      case c.name
+    columns.each do |col|
+      case col.name
       when :foo
-        assert_equal c.type, 'character varying'.to_sym
+        assert_equal col.type, 'character varying'.to_sym
       when :bar
-        assert_equal c.type, :integer
+        assert_equal col.type, :integer
       end
     end
 
