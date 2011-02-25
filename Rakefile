@@ -35,7 +35,7 @@ spec = Hoe.spec 'rdbi-driver-postgresql' do
   extra_dev_deps << ['minitest']
 
   extra_deps << ['rdbi']
-  extra_deps << ['pg', '>= 0.9.0']
+  extra_deps << ['pg', '>= 0.10.0']
 
   desc "install a gem without sudo"
 end
