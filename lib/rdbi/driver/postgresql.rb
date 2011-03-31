@@ -64,20 +64,36 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       Statement.new( query, self )
     end
 
+    # Return an RDBI::Schema object representing the named table or view,
+    # or nil if no such object exists.
+    #
+    # If multiple objects of the same name can be reached through the
+    # schemas in the current search_path, only the first is returned.
+    # Implicit schemas like "pg_catalog" are not searched at all.
     def table_schema( table_name, pg_schema = 'public' )
-      info_row = execute(
-        "SELECT table_type FROM information_schema.tables WHERE table_schema = ? AND table_name = ?",
-        pg_schema,
+      info_row = execute(%q{
+        SELECT table_type, "schema", "rank"
+        FROM information_schema.tables t
+          INNER JOIN ( SELECT i AS "rank",
+                              (current_schemas(false))[i] AS "schema"
+                       FROM generate_series(1, array_upper(current_schemas(false), 1)) i ) "search_path"
+            ON t.table_schema = "search_path".schema
+        WHERE table_name = ?
+        ORDER BY "rank"
+        LIMIT 1;
+      },
         table_name
       ).fetch( :first ) rescue nil
       if info_row.nil?
         return nil
       end
 
+      table_type, schema_name = info_row
+
       sch = RDBI::Schema.new( [], [] )
       sch.tables << table_name.to_sym
 
-      case info_row[ 0 ]
+      case table_type
       when 'BASE TABLE'
         sch.type = :table
       when 'VIEW'
@@ -95,7 +111,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
                 ON tc.constraint_name = kcu.constraint_name
           WHERE c.table_schema = ? and c.table_name = ?
         ],
-        pg_schema,
+        schema_name,
         table_name
       ).fetch( :all ).each do |row|
         col = RDBI::Column.new
@@ -111,14 +127,21 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       sch
     end
 
-    def schema( pg_schema = 'public' )
+    # Return a list of RDBI::Schema objects representing the tables and
+    # views visible in the current search_path.
+    #
+    # If different search_path schemas contain entities of the same name
+    # (for example, "myuser"."tbl" and "public"."tbl"), only the first is
+    # included in the results.  Implicit schemas like "pg_catalog" are
+    # ignored.
+    def schema
       schemata = []
       execute(%Q[
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = '#{pg_schema}'
+        SELECT DISTINCT table_name
+        FROM information_schema.tables
+        WHERE table_schema = ANY (current_schemas(false))
       ]).fetch( :all ).each do |row|
-        schemata << table_schema( row[0], pg_schema )
+        schemata << table_schema(row[0])
       end
       schemata
     end
