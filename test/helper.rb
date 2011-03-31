@@ -4,9 +4,26 @@ require 'fileutils'
 require 'rdbi-dbrc'
 require 'rdbi/driver/postgresql'
 
-class Test::Unit::TestCase
+# Tests that can be performed on an empty database
+class BasicTest < Test::Unit::TestCase
+  def new_database
+    RDBI::DBRC.connect(:postgresql_test)
+  end
 
-  SQL = [
+  def role
+    RDBI::DBRC.roles[:postgresql_test]
+  end
+end
+
+# Tests aware of certain pre-existing tables
+class DDLTest < BasicTest
+  attr_accessor :dbh
+
+  SQL_UP = [
+    'SET client_min_messages=error',  # please!
+    'CREATE SCHEMA rdbi_test1',
+    'CREATE SCHEMA rdbi_test2',
+    'SET search_path = rdbi_test1,rdbi_test2',
     'DROP TABLE IF EXISTS foo',
     'DROP TABLE IF EXISTS bar',
     'DROP TABLE IF EXISTS time_test',
@@ -20,17 +37,22 @@ class Test::Unit::TestCase
     "INSERT INTO ordinals ( cardinal, s ) VALUES ( 3, 'third' )",
   ]
 
-  def new_database
-    RDBI::DBRC.connect(:postgresql_test)
+  SQL_DOWN = [
+    'SET client_min_messages=error',  # please!
+    'DROP SCHEMA rdbi_test2 CASCADE',
+    'DROP SCHEMA rdbi_test1 CASCADE',
+  ]
+
+  def setup
+    @dbh = new_database
+    SQL_DOWN.each { |query| @dbh.execute_modification(query) rescue nil }
+    SQL_UP.each { |query| dbh.execute_modification(query) }
   end
 
-  def init_database
-    dbh = new_database
-    SQL.each { |query| dbh.execute_modification(query) }
-    return dbh
-  end
-
-  def role
-    RDBI::DBRC.roles[:postgresql_test]
+  def teardown
+    SQL_DOWN.each { |query| @dbh.execute_modification(query) }
+    @dbh.disconnect if @dbh.connected?
+  rescue
+    nil
   end
 end
