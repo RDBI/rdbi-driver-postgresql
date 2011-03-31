@@ -1,15 +1,8 @@
 require 'helper'
 
-class TestDatabase < Test::Unit::TestCase
-
-  attr_accessor :dbh
-
-  def teardown
-    @dbh.disconnect  if @dbh && @dbh.connected?
-  end
-
+class TestDatabase < BasicTest
   def test_01_connect
-    self.dbh = new_database
+    dbh = new_database
     assert dbh
     assert_kind_of( RDBI::Driver::PostgreSQL::Database, dbh )
     assert_kind_of( RDBI::Database, dbh )
@@ -19,11 +12,10 @@ class TestDatabase < Test::Unit::TestCase
   end
 
   def test_02_ping
-    self.dbh = init_database
-
     my_role = role.dup
     driver = my_role.delete(:driver)
 
+    dbh = new_database
     assert_kind_of(Numeric, dbh.ping)
     assert_kind_of(Numeric, RDBI.ping(driver, my_role))
     dbh.disconnect
@@ -36,9 +28,10 @@ class TestDatabase < Test::Unit::TestCase
     # downed database is gonna be pretty hard.
     assert_kind_of(Numeric, RDBI.ping(driver, my_role))
   end
+end
 
-  def test_03_execute
-    self.dbh = init_database
+class TestInitializedDatabase < DDLTest
+  def test_01_execute
     assert_equal(1, dbh.execute_modification( "insert into foo (bar) values (?)", 1 ))
 
     res = dbh.execute( "select * from foo" )
@@ -74,9 +67,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal DateTime.parse( time_str ), row[ 3 ]
   end
 
-  def test_04_prepare
-    self.dbh = init_database
-
+  def test_02_prepare
     sth = dbh.prepare( "insert into foo (bar) values (?)" )
     assert sth
     assert_kind_of( RDBI::Statement, sth )
@@ -111,9 +102,7 @@ class TestDatabase < Test::Unit::TestCase
     sth2.finish
   end
 
-  def test_05_transaction
-    self.dbh = init_database
-
+  def test_03_transaction
     dbh.transaction do
       assert dbh.in_transaction?
       5.times { dbh.execute_modification( "insert into foo (bar) values (?)", 1 ) }
@@ -156,17 +145,14 @@ class TestDatabase < Test::Unit::TestCase
     end
   end
 
-  def test_06_preprocess_query
-    self.dbh = init_database
+  def test_04_preprocess_query
     assert_equal(
       "insert into foo (bar) values (1)",
       dbh.preprocess_query( "insert into foo (bar) values (?)", 1 )
     )
   end
 
-  def test_07_schema
-    self.dbh = init_database
-
+  def test_05_schema
     dbh.execute_modification( "insert into bar (foo, bar) values (?, ?)", "foo", 1 )
     res = dbh.execute( "select * from bar" )
 
@@ -177,9 +163,7 @@ class TestDatabase < Test::Unit::TestCase
     res.schema.columns.each { |x| assert_kind_of(RDBI::Column, x) }
   end
 
-  def test_08_datetime
-    self.dbh = init_database
-
+  def test_06_datetime
     dt = DateTime.now
     dbh.execute_modification( 'insert into time_test (my_date) values (?)', dt )
     dt2 = dbh.execute( 'select * from time_test limit 1' ).fetch(1)[0][0]
@@ -195,12 +179,13 @@ class TestDatabase < Test::Unit::TestCase
     assert_nil dt3
   end
 
-  def test_09_basic_schema
-    self.dbh = init_database
+  def test_07_basic_schema
+    dbh.execute_modification('create table rdbi_test2.x (i integer)')
+
     assert_respond_to( dbh, :schema )
     schema = dbh.schema.sort_by { |x| x.tables[0].to_s }
 
-    tables = [ :bar, :foo, :ordinals, :time_test ]
+    tables = [ :bar, :foo, :ordinals, :time_test, :x ]
     columns = {
       :bar => { :foo => 'character varying'.to_sym, :bar => :integer },
       :foo => { :bar => :integer },
@@ -210,6 +195,7 @@ class TestDatabase < Test::Unit::TestCase
         :cardinal => :integer,
         :s => 'character varying'.to_sym,
       },
+      :x => { :i => :integer },
     }
 
     schema.each_with_index do |sch, x|
@@ -231,9 +217,13 @@ class TestDatabase < Test::Unit::TestCase
     assert_kind_of( Fixnum, rows[ 0 ][ :cardinal ] )
   end
 
-  def test_10_table_schema
-    self.dbh = init_database
+  def test_08_table_schema
     assert_respond_to( dbh, :table_schema )
+
+    # reverse our search path, create a unique (unqualified) name and one
+    # that shadows another table
+    dbh.execute_modification('SET search_path=rdbi_test2,rdbi_test1')
+    dbh.execute_modification('CREATE TABLE foo (quxx INTEGER, blork CHAR(1))')
 
     assert(dbh.table_schema('ordinals').columns.find {|x| x.name == :id }.primary_key)
     assert(!dbh.table_schema('ordinals').columns.find {|x| x.name == :cardinal }.primary_key)
@@ -241,10 +231,13 @@ class TestDatabase < Test::Unit::TestCase
 
     schema = dbh.table_schema( :foo )
     columns = schema.columns
-    assert_equal columns.size, 1
+    assert_equal columns.size, 2
     c = columns[ 0 ]
-    assert_equal c.name, :bar
+    assert_equal c.name, :quxx
     assert_equal c.type, :integer
+    c = columns[ 1 ]
+    assert_equal c.name, :blork
+    assert_equal c.type, :character
 
     schema = dbh.table_schema( :bar )
     columns = schema.columns
@@ -261,9 +254,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_nil dbh.table_schema( :non_existent )
   end
 
-  def test_11_named_binds
-    self.dbh = init_database
-
+  def test_09_named_binds
     res = dbh.execute("select id, cardinal, s from ordinals where id = ?id", { :id => 1 })
     assert(res)
     assert_equal([[1, 1, 'first']], res.fetch(:all))
@@ -277,9 +268,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal([[1, 1, 'first']], res.fetch(:all))
   end
 
-  def test_12_struct_select
-    self.dbh = init_database
-
+  def test_10_struct_select
     results = dbh.execute("select id, cardinal, s from ordinals order by id").as(:Struct).fetch(:all)
 
     assert(results)
@@ -307,7 +296,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(results[2].id, 3)
     assert_equal(results[2].cardinal, 3)
     assert_equal(results[2].s, 'third')
-    
+
     result = dbh.execute("select * from ordinals order by id").as(:Struct).fetch(:first)
     assert(result)
     assert_kind_of(Struct, result)
@@ -315,10 +304,8 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(result.cardinal, 1)
     assert_equal(result.s, 'first')
   end
-  
-  def test_13_quote
-    self.dbh = init_database
 
+  def test_11_quote
     assert_equal(%q[1], dbh.quote(1))
     assert_equal(%q[false], dbh.quote(false))
     assert_equal(%q[true], dbh.quote(true))
