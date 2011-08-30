@@ -206,6 +206,10 @@ class TestDatabase < Test::Unit::TestCase
     dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
     assert_kind_of  DateTime, dt
 
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( '2011-08-30 11:32:36.802597'::TIMESTAMP )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
     dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375' AS TIMESTAMP ) )"
     dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
     assert_kind_of  DateTime, dt
@@ -239,6 +243,14 @@ class TestDatabase < Test::Unit::TestCase
       rows = dbh.execute( 'SELECT id, ts FROM time_test2 WHERE id = -1' ).fetch(1)
     end
     assert_empty rows
+
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375' AS TIMESTAMP ) )"
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:50:00' AS TIMESTAMP ) )"
+    rows = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 2' ).fetch(2)
+    rows.each do |row|
+      assert_kind_of  DateTime, row[0]
+    end
+
   end
 
   def test_09_basic_schema

@@ -308,12 +308,17 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       # PostgreSQL returns timestamps with and without subseconds.
       # RDBI by default doesn't handle timestamps with subseconds,
       # so here we account for that in our PostgreSQL driver
-      format = "%Y-%m-%d %H:%M:%S.%N %z"
       check = proc do |obj|
         begin
-          converted_and_back = DateTime.strptime(obj, format).strftime(format)
-          # Strip trailing zeros in subseconds
-          converted_and_back.gsub(/\.(\d+?)0* /, ".\\1 ") == obj.gsub(/\.(\d+?)0* /, ".\\1 ")
+          if obj.include?('.')
+            format = "%Y-%m-%d %H:%M:%S.%N %z"
+            converted_and_back = DateTime.strptime(obj, format).strftime(format)
+            # Strip trailing zeros in subseconds
+            converted_and_back.gsub(/\.(\d+?)0* /, ".\\1 ") == obj.gsub(/\.(\d+?)0* /, ".\\1 ")
+          else
+            format = "%Y-%m-%d %H:%M:%S %z"
+            DateTime.strptime(obj, format).strftime(format) == obj
+          end
         rescue ArgumentError => e
           if e.message == 'invalid date'
             false
@@ -322,8 +327,14 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           end
         end
       end
-      convert = proc { |obj| DateTime.strptime(obj, format) }
-      @output_type_map[ :timestamp_with_subseconds ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
+      convert = proc do |obj|
+        if obj.include?('.')
+          DateTime.strptime(obj, "%Y-%m-%d %H:%M:%S.%N %z")
+        else
+          DateTime.strptime(obj, "%Y-%m-%d %H:%M:%S %z")
+        end
+      end
+      @output_type_map[ :timestamp ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
 
       prep_finalizer { @pg_result.clear }
     end
@@ -352,13 +363,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           c.name = pg_result.fname( i ).to_sym
           c.type = type
           if c.type.start_with? 'timestamp'
-            # Hackery!  But hey, it makes it work.  :P
-            # Here we're grabbing the actual timestamp value and checking for a decimal point
-            if pg_result.count > 0 && pg_result[0] && pg_result[0].to_a[i] && pg_result[0].to_a[i][1] && pg_result[0].to_a[i][1].include?('.')
-              c.ruby_type = 'timestamp_with_subseconds'.to_sym
-            else
-              c.ruby_type = 'timestamp'.to_sym
-            end
+            c.ruby_type = 'timestamp'.to_sym
           else
             c.ruby_type = c.type.to_sym
           end
