@@ -114,8 +114,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def schema( pg_schema = 'public' )
       schemata = []
       execute(%Q[
-        SELECT table_name 
-        FROM information_schema.tables 
+        SELECT table_name
+        FROM information_schema.tables
         WHERE table_schema = '#{pg_schema}'
       ]).fetch( :all ).each do |row|
         schemata << table_schema( row[0], pg_schema )
@@ -141,7 +141,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         raise RDBI::DisconnectedError, "disconnected during ping"
       end
     end
-    
+
     def quote(item)
       case item
       when Numeric
@@ -207,7 +207,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def [](index)
       fix_dates(@handle[index].values)
     end
-    
+
     def last_row?
       @index == result_count
     end
@@ -238,7 +238,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         ary << row
       end
       # XXX end stupid rectifier.
-      
+
       return ary
     end
 
@@ -285,7 +285,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       query = ep.quote(Hash[@index_map.compact.zip([])]) do |x|
         case x
         when Integer
-          "$#{x+1}" 
+          "$#{x+1}"
         when Symbol
           num = @index_map.index(x)
           "$#{num+1}"
@@ -319,7 +319,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
       pg_result = @dbh.pg_conn.exec_prepared( @stmt_name, binds )
 
-      columns = [] 
+      columns = []
       column_query = (0...pg_result.num_fields).map do |x|
         "format_type(#{ pg_result.ftype(x) }, #{ pg_result.fmod(x) }) as col#{x}"
       end.join(", ")
