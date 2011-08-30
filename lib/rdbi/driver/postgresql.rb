@@ -251,7 +251,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
         if val.kind_of?(Array)
           index2 = 0
           val.collect! do |col|
-            if !col.nil? and columns[index2].type == 'timestamp without time zone'
+            ctype = columns[index2].type
+            if !col.nil? && ctype.start_with?('timestamp') && ctype =~ /timestamp(?:\(\d\d?\))? without time zone/
               col << @stub_datetime
             end
 
@@ -259,7 +260,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
             col
           end
         else
-          if !val.nil? and columns[index].type == 'timestamp without time zone'
+          ctype = columns[index].type
+          if !val.nil? && ctype.start_with?('timestamp') && ctype =~ /timestamp(?:\(\d\d?\))? without time zone/
             val << @stub_datetime
           end
         end

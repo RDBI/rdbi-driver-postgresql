@@ -206,6 +206,14 @@ class TestDatabase < Test::Unit::TestCase
     dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
     assert_kind_of  DateTime, dt
 
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375' AS TIMESTAMP ) )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38' AS TIMESTAMP ) )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
     dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( CURRENT_TIMESTAMP(0) )'
     dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
     assert_kind_of  DateTime, dt
@@ -221,6 +229,11 @@ class TestDatabase < Test::Unit::TestCase
     dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( NOW() )'
     dt = dbh.execute( 'SELECT id, my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][1]
     assert_kind_of  DateTime, dt
+
+    dbh.execute_modification 'INSERT INTO time_test2 ( ts ) VALUES ( CURRENT_TIMESTAMP(0) )'
+    require 'rubygems'; require 'ruby-debug'; debugger
+    ts = dbh.execute( 'SELECT id, ts FROM time_test2 ORDER BY id DESC LIMIT 1' ).fetch(1)[0][1]
+    assert_kind_of  DateTime, ts
   end
 
   def test_09_basic_schema
@@ -228,11 +241,12 @@ class TestDatabase < Test::Unit::TestCase
     assert_respond_to( dbh, :schema )
     schema = dbh.schema.sort_by { |x| x.tables[0].to_s }
 
-    tables = [ :bar, :foo, :ordinals, :time_test ]
+    tables = [ :bar, :foo, :ordinals, :time_test, :time_test2 ]
     columns = {
       :bar => { :foo => 'character varying'.to_sym, :bar => :integer },
       :foo => { :bar => :integer },
       :time_test => { :id => :integer, :my_date => 'timestamp without time zone'.to_sym },
+      :time_test2 => { :id => :integer, :ts => 'timestamp without time zone'.to_sym },
       :ordinals => {
         :id => :integer,
         :cardinal => :integer,
