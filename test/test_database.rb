@@ -267,11 +267,11 @@ class TestDatabase < Test::Unit::TestCase
     res = dbh.execute("select id, cardinal, s from ordinals where id = ?id", { :id => 1 })
     assert(res)
     assert_equal([[1, 1, 'first']], res.fetch(:all))
-   
+
     res = dbh.execute("select id, cardinal, s from ordinals where id = ?id and cardinal = ?", { :id => 1 }, 1)
     assert(res)
     assert_equal([[1, 1, 'first']], res.fetch(:all))
-    
+
     res = dbh.execute("select id, cardinal, s from ordinals where id = ?id and cardinal = ?", 1, { :id => 1 })
     assert(res)
     assert_equal([[1, 1, 'first']], res.fetch(:all))
@@ -293,9 +293,9 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(results[2].id, 3)
     assert_equal(results[2].cardinal, 3)
     assert_equal(results[2].s, 'third')
-    
+
     results = dbh.execute("select * from ordinals order by id").as(:Struct).fetch(:all)
-    
+
     assert(results)
     assert_kind_of(Array, results)
     assert_equal(results[0].id, 1)
@@ -307,7 +307,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(results[2].id, 3)
     assert_equal(results[2].cardinal, 3)
     assert_equal(results[2].s, 'third')
-    
+
     result = dbh.execute("select * from ordinals order by id").as(:Struct).fetch(:first)
     assert(result)
     assert_kind_of(Struct, result)
@@ -315,7 +315,7 @@ class TestDatabase < Test::Unit::TestCase
     assert_equal(result.cardinal, 1)
     assert_equal(result.s, 'first')
   end
-  
+
   def test_13_quote
     self.dbh = init_database
 
