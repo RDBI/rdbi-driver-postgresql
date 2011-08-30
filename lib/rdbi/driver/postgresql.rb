@@ -354,7 +354,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           if c.type.start_with? 'timestamp'
             # Hackery!  But hey, it makes it work.  :P
             # Here we're grabbing the actual timestamp value and checking for a decimal point
-            if pg_result[0] && pg_result[0].to_a[i] && pg_result[0].to_a[i][1] && pg_result[0].to_a[i][1].include?('.')
+            if pg_result.count > 0 && pg_result[0] && pg_result[0].to_a[i] && pg_result[0].to_a[i][1] && pg_result[0].to_a[i][1].include?('.')
               c.ruby_type = 'timestamp_with_subseconds'.to_sym
             else
               c.ruby_type = 'timestamp'.to_sym

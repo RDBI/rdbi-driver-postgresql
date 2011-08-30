@@ -233,6 +233,12 @@ class TestDatabase < Test::Unit::TestCase
     dbh.execute_modification 'INSERT INTO time_test2 ( ts ) VALUES ( CURRENT_TIMESTAMP(0) )'
     ts = dbh.execute( 'SELECT id, ts FROM time_test2 ORDER BY id DESC LIMIT 1' ).fetch(1)[0][1]
     assert_kind_of  DateTime, ts
+
+    rows = [ 'not empty' ]
+    assert_nothing_raised do
+      rows = dbh.execute( 'SELECT id, ts FROM time_test2 WHERE id = -1' ).fetch(1)
+    end
+    assert_empty rows
   end
 
   def test_09_basic_schema
