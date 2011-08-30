@@ -13,7 +13,7 @@ class Test::Unit::TestCase
     'DROP TABLE IF EXISTS ordinals',
     'create table foo (bar integer)',
     'create table bar (foo varchar, bar integer)',
-    'create table time_test (my_date timestamp)',
+    'create table time_test (id SERIAL PRIMARY KEY, my_date timestamp)',
     'CREATE TABLE ordinals ( id SERIAL PRIMARY KEY, cardinal INTEGER, s VARCHAR )',
     "INSERT INTO ordinals ( cardinal, s ) VALUES ( 1, 'first' )",
     "INSERT INTO ordinals ( cardinal, s ) VALUES ( 2, 'second' )",

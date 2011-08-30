@@ -3,7 +3,7 @@ require 'epoxy'
 require 'pg'
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
-  VERSION = "1.0.0"
+  VERSION = "1.0.1"
 
   def initialize( *args )
     super( Database, *args )
@@ -303,6 +303,26 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       @output_type_map = RDBI::Type.create_type_hash( RDBI::Type::Out )
       @output_type_map[ :bigint ] = RDBI::Type.filterlist( RDBI::Type::Filters::STR_TO_INT )
 
+      # PostgreSQL returns timestamps with and without subseconds.
+      # RDBI by default doesn't handle timestamps with subseconds,
+      # so here we account for that in our PostgreSQL driver
+      format = "%Y-%m-%d %H:%M:%S.%N %z"
+      check = proc do |obj|
+        begin
+          converted_and_back = DateTime.strptime(obj, format).strftime(format)
+          # Strip trailing zeros in subseconds
+          converted_and_back.gsub(/\.(\d+?)0* /, ".\\1 ") == obj.gsub(/\.(\d+?)0* /, ".\\1 ")
+        rescue ArgumentError => e
+          if e.message == 'invalid date'
+            false
+          else
+            raise e
+          end
+        end
+      end
+      convert = proc { |obj| DateTime.strptime(obj, format) }
+      @output_type_map[ :timestamp_with_subseconds ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
+
       prep_finalizer { @pg_result.clear }
     end
 
@@ -330,7 +350,13 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           c.name = pg_result.fname( i ).to_sym
           c.type = type
           if c.type.start_with? 'timestamp'
-            c.ruby_type = 'timestamp'.to_sym
+            # Hackery!  But hey, it makes it work.  :P
+            # Here we're grabbing the actual timestamp value and checking for a decimal point
+            if pg_result[0] && pg_result[0].to_a[i] && pg_result[0].to_a[i][1] && pg_result[0].to_a[i][1].include?('.')
+              c.ruby_type = 'timestamp_with_subseconds'.to_sym
+            else
+              c.ruby_type = 'timestamp'.to_sym
+            end
           else
             c.ruby_type = c.type.to_sym
           end

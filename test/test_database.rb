@@ -182,7 +182,7 @@ class TestDatabase < Test::Unit::TestCase
 
     dt = DateTime.now
     dbh.execute_modification( 'insert into time_test (my_date) values (?)', dt )
-    dt2 = dbh.execute( 'select * from time_test limit 1' ).fetch(1)[0][0]
+    dt2 = dbh.execute( 'select my_date from time_test limit 1' ).fetch(1)[0][0]
 
     assert_kind_of( DateTime, dt2 )
     assert_equal( dt2.to_s, dt.to_s )
@@ -190,9 +190,37 @@ class TestDatabase < Test::Unit::TestCase
     dbh.execute 'INSERT INTO time_test ( my_date ) VALUES ( NULL )'
     dt3 = "not nil"
     assert_nothing_raised do
-      dt3 = dbh.execute( 'SELECT * FROM time_test WHERE my_date IS NULL LIMIT 1' ).fetch( 1 )[0][0]
+      dt3 = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NULL LIMIT 1' ).fetch( 1 )[0][0]
     end
     assert_nil dt3
+
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375-04' AS TIMESTAMP(0) WITH TIME ZONE ) )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375-04' AS TIMESTAMP(1) WITH TIME ZONE ) )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification "INSERT INTO time_test ( my_date ) VALUES ( CAST( '2011-08-30 06:57:38.1375-04' AS TIMESTAMP WITH TIME ZONE ) )"
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( CURRENT_TIMESTAMP(0) )'
+    dt = dbh.execute( 'SELECT my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( CURRENT_TIMESTAMP(2) )'
+    dt = dbh.execute( 'SELECT id, my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][1]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( CURRENT_TIMESTAMP )'
+    dt = dbh.execute( 'SELECT my_date, id FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][0]
+    assert_kind_of  DateTime, dt
+
+    dbh.execute_modification 'INSERT INTO time_test ( my_date ) VALUES ( NOW() )'
+    dt = dbh.execute( 'SELECT id, my_date FROM time_test WHERE my_date IS NOT NULL ORDER BY id DESC LIMIT 1' ).fetch(1)[0][1]
+    assert_kind_of  DateTime, dt
   end
 
   def test_09_basic_schema
@@ -204,7 +232,7 @@ class TestDatabase < Test::Unit::TestCase
     columns = {
       :bar => { :foo => 'character varying'.to_sym, :bar => :integer },
       :foo => { :bar => :integer },
-      :time_test => { :my_date => 'timestamp without time zone'.to_sym },
+      :time_test => { :id => :integer, :my_date => 'timestamp without time zone'.to_sym },
       :ordinals => {
         :id => :integer,
         :cardinal => :integer,
