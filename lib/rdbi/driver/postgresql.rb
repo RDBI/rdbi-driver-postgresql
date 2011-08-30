@@ -3,7 +3,7 @@ require 'epoxy'
 require 'pg'
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
-  VERSION = "1.0.1"
+  VERSION = "0.9.2"
 
   def initialize( *args )
     super( Database, *args )
