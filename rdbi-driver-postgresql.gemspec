@@ -42,7 +42,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<rdoc>, [">= 0"])
       s.add_development_dependency(%q<rdbi-dbrc>, [">= 0"])
       s.add_runtime_dependency(%q<rdbi>, [">= 0"])
-      s.add_runtime_dependency(%q<pg>, ["=> 0.10.0"])
+      s.add_runtime_dependency(%q<pg>, [">= 0.10.0"])
       s.add_runtime_dependency(%q<methlab>, [">= 0"])
       s.add_runtime_dependency(%q<epoxy>, [">= 0.3.1"])
     else
@@ -50,7 +50,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<rdoc>, [">= 0"])
       s.add_dependency(%q<rdbi-dbrc>, [">= 0"])
       s.add_dependency(%q<rdbi>, [">= 0"])
-      s.add_dependency(%q<pg>, ["=> 0.10.0"])
+      s.add_dependency(%q<pg>, [">= 0.10.0"])
       s.add_dependency(%q<methlab>, [">= 0"])
       s.add_dependency(%q<epoxy>, [">= 0.3.1"])
     end
@@ -59,7 +59,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<rdoc>, [">= 0"])
     s.add_dependency(%q<rdbi-dbrc>, [">= 0"])
     s.add_dependency(%q<rdbi>, [">= 0"])
-    s.add_dependency(%q<pg>, ["=> 0.10.0"])
+    s.add_dependency(%q<pg>, [">= 0.10.0"])
     s.add_dependency(%q<methlab>, [">= 0"])
     s.add_dependency(%q<epoxy>, [">= 0.3.1"])
   end
