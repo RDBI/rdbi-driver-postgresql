@@ -5,7 +5,7 @@ The PostgreSQL database driver for RDBI.
 == Requirements
 
 * Ruby 1.8.7+
-* "pg" gem, version 0.9.0
+* "pg" gem, version >= 0.10.0
 * "rdbi" gem
 
 == Copyright
