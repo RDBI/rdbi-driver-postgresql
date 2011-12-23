@@ -91,6 +91,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
           FROM information_schema.columns c
             LEFT JOIN information_schema.key_column_usage kcu
               ON kcu.column_name = c.column_name
+              AND kcu.table_name = c.table_name
               LEFT JOIN information_schema.table_constraints tc
                 ON tc.constraint_name = kcu.constraint_name
           WHERE c.table_schema = ? and c.table_name = ?
