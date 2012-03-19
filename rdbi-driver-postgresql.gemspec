@@ -14,14 +14,12 @@ Gem::Specification.new do |s|
   s.email = %q{rdbi@pistos.oib.com}
   s.extra_rdoc_files = [
     "LICENSE",
-    "README.rdoc"
+    "readme.txt"
   ]
   s.files = [
-    "LICENCE",
     "LICENSE",
-    "README.rdoc",
+    "readme.txt",
     "Rakefile",
-    "VERSION",
     "lib/rdbi-driver-postgresql.rb",
     "lib/rdbi/driver/postgresql.rb",
     "rdbi-driver-postgresql.gemspec",
