@@ -337,7 +337,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       end
       @output_type_map[ :timestamp ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
 
-      prep_finalizer { @pg_result.clear }
+      @finish_block = Proc.new { @pg_result.clear }
     end
 
     def new_modification(*binds)
