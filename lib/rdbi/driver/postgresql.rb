@@ -41,7 +41,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       if in_transaction?
         raise RDBI::TransactionError.new( "Already in transaction (not supported by PostgreSQL)" )
       end
-      execute 'BEGIN'
+      execute('BEGIN').finish
       super(&block)
     end
 
@@ -49,14 +49,14 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       if ! in_transaction?
         raise RDBI::TransactionError.new( "Cannot rollback when not in a transaction" )
       end
-      execute 'ROLLBACK'
+      execute('ROLLBACK').finish
       super
     end
     def commit
       if ! in_transaction?
         raise RDBI::TransactionError.new( "Cannot commit when not in a transaction" )
       end
-      execute 'COMMIT'
+      execute('COMMIT').finish
       super
     end
 
