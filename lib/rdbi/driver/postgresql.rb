@@ -281,7 +281,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
 
     def initialize( query, dbh )
       super( query, dbh )
-      @stmt_name = ('stmt_' + Time.now.to_f.to_s).tr('.', '_')
+      @stmt_name = Time.now.to_f.to_s
 
       ep = Epoxy.new( query )
       @index_map = ep.indexed_binds
@@ -337,10 +337,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       end
       @output_type_map[ :timestamp ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
 
-      @finish_block = Proc.new {
-        @dbh.pg_conn.exec("DEALLOCATE #{@stmt_name}")# rescue nil
-        @pg_result.clear
-      }
+      @finish_block = Proc.new { @pg_result.clear }
     end
 
     def new_modification(*binds)
