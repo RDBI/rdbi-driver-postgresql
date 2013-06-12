@@ -7,6 +7,7 @@ require 'rdbi/driver/postgresql'
 class Test::Unit::TestCase
 
   SQL = [
+    'set client_min_messages = warning',
     'DROP TABLE IF EXISTS foo',
     'DROP TABLE IF EXISTS bar',
     'DROP TABLE IF EXISTS time_test',
@@ -29,7 +30,7 @@ class Test::Unit::TestCase
   def init_database
     dbh = new_database
     SQL.each { |query| dbh.execute_modification(query) }
-    return dbh
+    dbh
   end
 
   def role
