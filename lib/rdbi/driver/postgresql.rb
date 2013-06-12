@@ -33,8 +33,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     end
 
     def disconnect
-      @pg_conn.close
       super
+      @pg_conn.close
     end
 
     def transaction( &block )
@@ -338,7 +338,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       @output_type_map[ :timestamp ] = RDBI::Type.filterlist( TypeLib::Filter.new(check, convert) )
 
       @finish_block = Proc.new {
-        @dbh.pg_conn.exec("DEALLOCATE #{@stmt_name}")# rescue nil
+        @dbh.pg_conn.exec("DEALLOCATE #{@stmt_name}")
         @pg_result.clear
       }
     end
