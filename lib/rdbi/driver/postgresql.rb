@@ -175,7 +175,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     end
 
     def next_row
-      return nil last_row?
+      return nil if last_row?
       val = @handle[@index].values
       @index += 1
       fix_dates(val)
