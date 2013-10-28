@@ -1,4 +1,4 @@
-require 'helper'
+require_relative './helper'
 
 class TestDatabase < Test::Unit::TestCase
 
