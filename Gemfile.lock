@@ -1,0 +1,35 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    epoxy (0.3.1)
+    hoe (3.18.0)
+      rake (>= 0.8, < 13.0)
+    minitest (5.11.3)
+    pg (1.1.4)
+    power_assert (1.1.4)
+    rake (12.3.2)
+    rdbi (1.1.0)
+      epoxy (>= 0.3.1)
+      typelib
+    rdbi-dbrc (0.1.0)
+      rdbi
+    rdoc (6.1.1)
+    test-unit (3.3.3)
+      power_assert
+    typelib (0.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hoe (~> 3.18.0)
+  minitest (~> 5.11.3)
+  pg (~> 1.1.4)
+  rake (~> 12.3.2)
+  rdbi (~> 1.1.0)
+  rdbi-dbrc (~> 0.1.0)
+  rdoc (~> 6.1.1)
+  test-unit (~> 3.3.3)
+
+BUNDLED WITH
+   1.17.2

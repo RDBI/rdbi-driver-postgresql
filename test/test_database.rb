@@ -88,7 +88,7 @@ class TestDatabase < Test::Unit::TestCase
       assert_equal( 1, res )
     end
 
-    assert_equal( dbh.last_statement.object_id, sth.object_id )
+    assert_equal( dbh.last_statement, sth )
 
     sth2 = dbh.prepare( "select * from foo" )
     assert sth

@@ -1,0 +1,4 @@
+postgresql_test:
+  driver: PostgreSQL
+  username: rdbi
+  password: some_password

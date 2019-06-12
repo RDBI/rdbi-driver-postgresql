@@ -3,7 +3,7 @@ require 'epoxy'
 require 'pg'
 
 class RDBI::Driver::PostgreSQL < RDBI::Driver
-  VERSION = "0.9.2"
+  VERSION = '0.10.0'
 
   def initialize( *args )
     super( Database, *args )
@@ -17,7 +17,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     def initialize( *args )
       super( *args )
       self.database_name = @connect_args[:dbname] || @connect_args[:database] || @connect_args[:db]
-      @pg_conn = PGconn.new(
+      @pg_conn = PG::Connection.new(
         @connect_args[:host] || @connect_args[:hostname],
         @connect_args[:port],
         @connect_args[:options],
@@ -128,8 +128,8 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
       start = Time.now
       rows = begin
                execute("SELECT 1").result_count
-             rescue PGError => e
-               # XXX Sorry this sucks. PGconn is completely useless without a
+             rescue PG::Error => e
+               # XXX Sorry this sucks. PG::Connection is completely useless without a
                # connection... like asking it if it's connected.
                raise RDBI::DisconnectedError.new(e.message)
              end
@@ -228,7 +228,7 @@ class RDBI::Driver::PostgreSQL < RDBI::Driver
     protected
 
     def fetch_range(start, stop)
-      # XXX when did PGresult get so stupid?
+      # XXX when did PG::Result get so stupid?
       ary = []
       (start..stop).each do |i|
         row = []

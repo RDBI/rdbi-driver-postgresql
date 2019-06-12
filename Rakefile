@@ -3,7 +3,6 @@
 require 'rubygems'
 require 'hoe'
 
-Hoe.plugins.delete :rubyforge
 Hoe.plugin :git
 Hoe.plugin :rcov
 Hoe.plugin :roodi
@@ -12,8 +11,6 @@ Hoe.plugin :reek
 spec = Hoe.spec 'rdbi-driver-postgresql' do
   developer 'Pistos', 'pistos@purepistos.net'
   developer 'Erik Hollensbe', 'erik@hollensbe.org'
-
-  self.rubyforge_name = nil
 
   self.description = <<-EOF
   This is the PostgreSQL driver for RDBI.
@@ -26,9 +23,11 @@ spec = Hoe.spec 'rdbi-driver-postgresql' do
   EOF
 
   self.summary = 'PostgreSQL driver for RDBI';
-  self.url = %w[http://github.com/rdbi/rdbi-driver-postgresql]
-  
-  require_ruby_version ">= 1.8.7"
+  self.urls = {
+    'github' => 'https://github.com/rdbi/rdbi-driver-postgresql'
+  }
+
+  require_ruby_version '>= 1.8.7'
 
   extra_dev_deps << ['hoe-roodi']
   extra_dev_deps << ['hoe-reek']
@@ -37,10 +36,10 @@ spec = Hoe.spec 'rdbi-driver-postgresql' do
   extra_deps << ['rdbi']
   extra_deps << ['pg', '>= 0.10.0']
 
-  desc "install a gem without sudo"
+  desc 'install a gem without sudo'
 end
 
 task :install => [:gem] do
-  sh "gem install pkg/#{spec.name}-#{spec.version}.gem"
+  sh 'gem install pkg/#{spec.name}-#{spec.version}.gem'
 end
 # vim: syntax=ruby
