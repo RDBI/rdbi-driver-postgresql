@@ -1,1 +1,3 @@
+.bundle
 *.gem
+test/dbrc
